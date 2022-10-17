@@ -35,27 +35,41 @@ scale_fill_discrete = scale_fill_viridis_d
 
 # Problem 2
 
-
+Load, tidy, and wrangle accel_data.csv
 ```{r}
 accel_df =
   read_csv("./data/accel_data.csv")%>%
   janitor::clean_names()%>%
   pivot_longer(
     activity_1:activity_1440,
-    names_to = "activity_measure",
+    names_to = "activity_count",
     values_to = "minute_of_day"
   )%>%
   mutate(weekend_weekday = ifelse(day %in% c("Friday", "Saturday", "Sunday"), "weekend", "weekday"))%>%
-   mutate(day=as.factor(day))%>%
+  mutate(day=as.factor(day))%>%
   mutate(weekend_weekday=as.factor(weekend_weekday))%>%
   select(week, day_id, day, weekend_weekday, everything())
 ```
 
-This dataset contains `50,400` rows and `6` columns. Variables include week, day_id, day, weekend_weekday, activity_measure, and  minute_of_day.
+This dataset contains `50,400` observations of `6` variables. Variables include week, day_id, day, weekend_weekday, activity_count, and  minute_of_day.
 
+Aggregate across minutes to create a total activity variable for each day, create a table, and look at trends
 ```{r}
-
+  accel_df$day = ordered(accel_df$day, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+accel_df %>%
+  group_by(week, day) %>%
+  summarize(total_activity = sum(minute_of_day))%>%
+ pivot_wider(
+   names_from = day,
+   values_from = total_activity
+ ) %>%
+    knitr::kable(digits = 1)
 ```
+There aren't any obvious trends, but people were slightly more active on Friday than Monday-Thursday and Saturday. People were least active on Saturday, especially for week 4 and 5.
+
+
+
+
 # Problem 3
 
 
