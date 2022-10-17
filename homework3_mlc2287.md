@@ -33,7 +33,7 @@ scale_fill_discrete = scale_fill_viridis_d
 
 # Problem 2
 
-Load, tidy, and wrangle accel_data.csv
+\####Load, tidy, and wrangle accel_data.csv
 
 ``` r
 accel_df =
@@ -63,8 +63,8 @@ This dataset contains `50,400` observations of `6` variables. Variables
 include week, day_id, day, weekend_weekday, activity_count, and
 minute_of_day.
 
-Aggregate across minutes to create a total activity variable for each
-day, create a table, and look at trends
+\####Aggregate across minutes to create a total activity variable for
+each day, create a table, and look at trends
 
 ``` r
   accel_df$day = ordered(accel_df$day, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
@@ -93,8 +93,8 @@ There aren’t any obvious trends, but our 63 year-old male study was
 slightly more active on Monday and Friday than Tuesday-Thursday and
 Saturday. He was least active on Saturday, especially for week 4 and 5.
 
-Make a single-panel plot that shows the 24-hour activity time courses
-for each day
+\####Make a single-panel plot that shows the 24-hour activity time
+courses for each day
 
 ``` r
 accel_df %>%
@@ -119,7 +119,7 @@ accel_df %>%
 ``` r
 accel_df %>%
   ggplot(aes(x=minute_of_day, y=activity_count, color = day)) + 
-  geom_line()+
+  geom_line() +
   geom_smooth(alpha = 0.5)
 ```
 
@@ -152,7 +152,7 @@ Thursday and most active on Friday, Sunday, and Monday.
 
 # Problem 3
 
-load dataset
+\####load dataset
 
 ``` r
 data("ny_noaa")%>%
@@ -170,34 +170,19 @@ weather station ID, ‘prcp’ represents precipitation(tenths of mm),
 values; missing values are a serious issue in this data set, espcially
 for snowfall.
 
-Data cleaning
+\####Data cleaning
 
 ``` r
-ny_noaa%>%
+ny_noaa_tidy = ny_noaa%>%
+janitor::clean_names()%>%
 separate(date, into=c("year", "month", "day"))%>%
+  mutate(month = month.abb[as.numeric(month)])%>% 
   mutate(
     tmax = as.numeric(tmax) / 10,
     tmin = as.numeric(tmin) / 10,
     prcp = as.numeric(prcp) / 10,
   )
-```
 
-    ## # A tibble: 2,595,176 × 9
-    ##    id          year  month day    prcp  snow  snwd  tmax  tmin
-    ##    <chr>       <chr> <chr> <chr> <dbl> <int> <int> <dbl> <dbl>
-    ##  1 US1NYAB0001 2007  11    01       NA    NA    NA    NA    NA
-    ##  2 US1NYAB0001 2007  11    02       NA    NA    NA    NA    NA
-    ##  3 US1NYAB0001 2007  11    03       NA    NA    NA    NA    NA
-    ##  4 US1NYAB0001 2007  11    04       NA    NA    NA    NA    NA
-    ##  5 US1NYAB0001 2007  11    05       NA    NA    NA    NA    NA
-    ##  6 US1NYAB0001 2007  11    06       NA    NA    NA    NA    NA
-    ##  7 US1NYAB0001 2007  11    07       NA    NA    NA    NA    NA
-    ##  8 US1NYAB0001 2007  11    08       NA    NA    NA    NA    NA
-    ##  9 US1NYAB0001 2007  11    09       NA    NA    NA    NA    NA
-    ## 10 US1NYAB0001 2007  11    10       NA    NA    NA    NA    NA
-    ## # … with 2,595,166 more rows
-
-``` r
 mode = function(){
     return(sort(-table(ny_noaa$snow))[1])
 }
@@ -210,4 +195,60 @@ mode()
 The most commonly observed value is 0 because snow usually comes down
 during winter and not during the other seasons.
 
-.
+\####Two-panel plot showing average max temperature in Jan. and in July
+in each station across years
+
+``` r
+ny_noaa_tidy%>%
+  filter(month %in% c("Jan", "Jul"))%>%
+  group_by(id, year, month)%>%
+  summarize(avg_tmax = mean(tmax, rm.na = TRUE)) %>%
+    ggplot(aes(x=as.numeric(year), y=avg_tmax, color=avg_tmax))+
+    geom_line(alpha = 0.4) +
+    geom_point(alpha = 0.5, size = 0.5) +
+    scale_x_continuous(breaks = c(1980, 1990, 2000, 2010)) +
+    labs(
+      title = "Averge max temperature in Janurary and July",
+      x = "years",
+      y = "average max temperature"
+    ) +
+      facet_grid(~month)
+```
+
+    ## `summarise()` has grouped output by 'id', 'year'. You can override using the
+    ## `.groups` argument.
+
+<img src="homework3_mlc2287_files/figure-gfm/unnamed-chunk-6-1.png" width="90%" />
+Average max temperature in July was much higher than January.
+Temperatures are relatively stable except there was one large dip
+(potential outlier) in average max temperature in July between
+1985-1990.
+
+\####Two-panel plot showing tmax vs tmin for full dataset and make a
+plot showing distribution of snowfall values greater than 0 and less
+than 100 separately by year
+
+``` r
+plot1 = ny_noaa_tidy%>%
+  ggplot(aes(x=tmin, y=tmax, rm.na = TRUE)) +
+  geom_boxplot(color='red') +
+  labs(
+    title= "Tmax vs Tmin",
+    x = "minimum temperature",
+    y = "maximum temperature"
+  )
+
+plot2 = ny_noaa_tidy%>%
+  filter(snow> 0 & snow < 100) %>%
+  ggplot(aes(x=as.numeric(year), y=snow)) +
+  geom_boxplot(color ='blue') +
+  scale_x_continuous(breaks = c(1980, 1990, 2000, 2010)) +
+  labs(
+    title= "Distribution of snowfall by year",
+    x = "year",
+    y = "distribution of snowfall"
+  )
+plot1 + plot2
+```
+
+<img src="homework3_mlc2287_files/figure-gfm/unnamed-chunk-7-1.png" width="90%" />
