@@ -151,3 +151,63 @@ From the graph, it seems as if our study is least active on Tuesday and
 Thursday and most active on Friday, Sunday, and Monday.
 
 # Problem 3
+
+load dataset
+
+``` r
+data("ny_noaa")%>%
+summary(ny_noaa)
+```
+
+    ##    Length     Class      Mode 
+    ##         1 character character
+
+NY NOAA contains 2,595,176 observations of 7 variables and contains the
+variables id, date, prcp, snow, snwd, tmax, and tmin.’id’ represents
+weather station ID, ‘prcp’ represents precipitation(tenths of mm),
+‘snwd’ represents snow depth, ‘tmax’ represents maximum temperature, and
+‘tmin’ represents minimum temperature. There are 591,786 total missing
+values; missing values are a serious issue in this data set, espcially
+for snowfall.
+
+Data cleaning
+
+``` r
+ny_noaa%>%
+separate(date, into=c("year", "month", "day"))%>%
+  mutate(
+    tmax = as.numeric(tmax) / 10,
+    tmin = as.numeric(tmin) / 10,
+    prcp = as.numeric(prcp) / 10,
+  )
+```
+
+    ## # A tibble: 2,595,176 × 9
+    ##    id          year  month day    prcp  snow  snwd  tmax  tmin
+    ##    <chr>       <chr> <chr> <chr> <dbl> <int> <int> <dbl> <dbl>
+    ##  1 US1NYAB0001 2007  11    01       NA    NA    NA    NA    NA
+    ##  2 US1NYAB0001 2007  11    02       NA    NA    NA    NA    NA
+    ##  3 US1NYAB0001 2007  11    03       NA    NA    NA    NA    NA
+    ##  4 US1NYAB0001 2007  11    04       NA    NA    NA    NA    NA
+    ##  5 US1NYAB0001 2007  11    05       NA    NA    NA    NA    NA
+    ##  6 US1NYAB0001 2007  11    06       NA    NA    NA    NA    NA
+    ##  7 US1NYAB0001 2007  11    07       NA    NA    NA    NA    NA
+    ##  8 US1NYAB0001 2007  11    08       NA    NA    NA    NA    NA
+    ##  9 US1NYAB0001 2007  11    09       NA    NA    NA    NA    NA
+    ## 10 US1NYAB0001 2007  11    10       NA    NA    NA    NA    NA
+    ## # … with 2,595,166 more rows
+
+``` r
+mode = function(){
+    return(sort(-table(ny_noaa$snow))[1])
+}
+mode()
+```
+
+    ##        0 
+    ## -2008508
+
+The most commonly observed value is 0 because snow usually comes down
+during winter and not during the other seasons.
+
+.
