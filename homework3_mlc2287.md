@@ -41,8 +41,8 @@ accel_df =
   janitor::clean_names()%>%
   pivot_longer(
     activity_1:activity_1440,
-    names_to = "activity_count",
-    values_to = "minute_of_day"
+    names_to = "minute_of_day",
+    values_to = "activity_count"
   )%>%
   mutate(weekend_weekday = ifelse(day %in% c("Friday", "Saturday", "Sunday"), "weekend", "weekday"))%>%
   mutate(day=as.factor(day))%>%
@@ -68,9 +68,9 @@ day, create a table, and look at trends
 
 ``` r
   accel_df$day = ordered(accel_df$day, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
-accel_df %>%
+  accel_df %>%
   group_by(week, day) %>%
-  summarize(total_activity = sum(minute_of_day))%>%
+  summarize(total_activity = sum(activity_count))%>%
  pivot_wider(
    names_from = day,
    values_from = total_activity
@@ -89,8 +89,65 @@ accel_df %>%
 |    4 | 409450.0 | 319568.0 |    434460 | 340291.0 | 154049.0 |     1440 | 260617 |
 |    5 | 389080.0 | 367824.0 |    445366 | 549658.0 | 620860.0 |     1440 | 138421 |
 
-There aren’t any obvious trends, but people were slightly more active on
-Friday than Monday-Thursday and Saturday. People were least active on
-Saturday, especially for week 4 and 5.
+There aren’t any obvious trends, but our 63 year-old male study was
+slightly more active on Monday and Friday than Tuesday-Thursday and
+Saturday. He was least active on Saturday, especially for week 4 and 5.
+
+Make a single-panel plot that shows the 24-hour activity time courses
+for each day
+
+``` r
+accel_df %>%
+  mutate(minute_of_day = as.numeric(minute_of_day))
+```
+
+    ## # A tibble: 50,400 × 6
+    ##     week day_id day    weekend_weekday minute_of_day activity_count
+    ##    <dbl>  <dbl> <ord>  <fct>                   <dbl>          <dbl>
+    ##  1     1      1 Friday weekend                    NA           88.4
+    ##  2     1      1 Friday weekend                    NA           82.2
+    ##  3     1      1 Friday weekend                    NA           64.4
+    ##  4     1      1 Friday weekend                    NA           70.0
+    ##  5     1      1 Friday weekend                    NA           75.0
+    ##  6     1      1 Friday weekend                    NA           66.3
+    ##  7     1      1 Friday weekend                    NA           53.8
+    ##  8     1      1 Friday weekend                    NA           47.8
+    ##  9     1      1 Friday weekend                    NA           55.5
+    ## 10     1      1 Friday weekend                    NA           43.0
+    ## # … with 50,390 more rows
+
+``` r
+accel_df %>%
+  ggplot(aes(x=minute_of_day, y=activity_count, color = day)) + 
+  geom_line()+
+  geom_smooth(alpha = 0.5)
+```
+
+    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+<img src="homework3_mlc2287_files/figure-gfm/unnamed-chunk-3-1.png" width="90%" />
+
+``` r
+labs(
+    title = "24-hour activity time courses for each day",
+    x = "minute of day",
+    y = "activity count"
+  ) 
+```
+
+    ## $x
+    ## [1] "minute of day"
+    ## 
+    ## $y
+    ## [1] "activity count"
+    ## 
+    ## $title
+    ## [1] "24-hour activity time courses for each day"
+    ## 
+    ## attr(,"class")
+    ## [1] "labels"
+
+From the graph, it seems as if our study is least active on Tuesday and
+Thursday and most active on Friday, Sunday, and Monday.
 
 # Problem 3

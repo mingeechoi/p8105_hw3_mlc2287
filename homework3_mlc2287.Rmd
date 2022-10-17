@@ -42,8 +42,8 @@ accel_df =
   janitor::clean_names()%>%
   pivot_longer(
     activity_1:activity_1440,
-    names_to = "activity_count",
-    values_to = "minute_of_day"
+    names_to = "minute_of_day",
+    values_to = "activity_count"
   )%>%
   mutate(weekend_weekday = ifelse(day %in% c("Friday", "Saturday", "Sunday"), "weekend", "weekday"))%>%
   mutate(day=as.factor(day))%>%
@@ -56,18 +56,33 @@ This dataset contains `50,400` observations of `6` variables. Variables include 
 Aggregate across minutes to create a total activity variable for each day, create a table, and look at trends
 ```{r}
   accel_df$day = ordered(accel_df$day, levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
-accel_df %>%
+  accel_df %>%
   group_by(week, day) %>%
-  summarize(total_activity = sum(minute_of_day))%>%
+  summarize(total_activity = sum(activity_count))%>%
  pivot_wider(
    names_from = day,
    values_from = total_activity
  ) %>%
     knitr::kable(digits = 1)
 ```
-There aren't any obvious trends, but people were slightly more active on Friday than Monday-Thursday and Saturday. People were least active on Saturday, especially for week 4 and 5.
+There aren't any obvious trends, but our 63 year-old male study was slightly more active on Monday and Friday than Tuesday-Thursday and Saturday. He was least active on Saturday, especially for week 4 and 5.
 
+Make a single-panel plot that shows the 24-hour activity time courses for each day
+```{r}
+accel_df %>%
+  mutate(minute_of_day = as.numeric(minute_of_day))
 
+accel_df %>%
+  ggplot(aes(x=minute_of_day, y=activity_count, color = day)) + 
+  geom_line()+
+  geom_smooth(alpha = 0.5)
+labs(
+    title = "24-hour activity time courses for each day",
+    x = "minute of day",
+    y = "activity count"
+  ) 
+```
+From the graph, it seems as if our study is least active on Tuesday and Thursday and most active on Friday, Sunday, and Monday.
 
 
 # Problem 3
